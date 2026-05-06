@@ -5,11 +5,17 @@ declare global {
   var __pgPool: Pool | undefined;
 }
 
+function sslConfig() {
+  const url = process.env.DATABASE_URL ?? "";
+  if (url.includes("localhost") || url.includes("127.0.0.1")) return undefined;
+  return { rejectUnauthorized: false };
+}
+
 export const pool =
   global.__pgPool ??
   new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL?.includes("railway") ? { rejectUnauthorized: false } : undefined,
+    ssl: sslConfig(),
     max: 10,
   });
 
