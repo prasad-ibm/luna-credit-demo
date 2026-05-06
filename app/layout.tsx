@@ -36,19 +36,19 @@ export default function RootLayout({
             <nav className="flex gap-1 text-sm">
               <Link
                 href="/exposure"
-                className="px-3 py-1.5 rounded-md hover:bg-muted"
+                className="px-3 py-1.5 rounded-md hover:bg-slate-100"
               >
                 Exposure
               </Link>
               <Link
                 href="/collections"
-                className="px-3 py-1.5 rounded-md hover:bg-muted"
+                className="px-3 py-1.5 rounded-md hover:bg-slate-100"
               >
                 Collections
               </Link>
               <Link
                 href="/sox"
-                className="px-3 py-1.5 rounded-md hover:bg-muted"
+                className="px-3 py-1.5 rounded-md hover:bg-slate-100"
               >
                 SOX
               </Link>

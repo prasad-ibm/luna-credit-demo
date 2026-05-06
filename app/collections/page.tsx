@@ -106,7 +106,7 @@ export default async function CollectionsPage({
 
       <div className="rounded-lg border bg-card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50 border-b">
+          <thead className="bg-slate-100 border-b">
             <tr className="text-left">
               <th className="px-4 py-2.5 font-medium">Priority</th>
               <th className="px-4 py-2.5 font-medium">Customer</th>
@@ -121,7 +121,7 @@ export default async function CollectionsPage({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.invoice_id} className="border-b hover:bg-muted/30">
+              <tr key={r.invoice_id} className="border-b hover:bg-slate-50">
                 <td className="px-4 py-2.5 font-mono text-xs">
                   {parseFloat(r.priority_score).toFixed(0)}
                 </td>

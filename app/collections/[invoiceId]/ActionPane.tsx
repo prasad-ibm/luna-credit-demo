@@ -118,7 +118,7 @@ export function ActionPane({
         <div className="flex gap-1.5">
           {(["EMAIL", "CALL", "DUNNING_LETTER"] as Channel[]).map((c) => (
             <button key={c} onClick={() => setChannel(c)}
-              className={`text-xs px-2.5 py-1 rounded border ${channel === c ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"}`}>
+              className={`text-xs px-2.5 py-1 rounded border ${channel === c ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-slate-100"}`}>
               {c.replace("_", " ")}
             </button>
           ))}
@@ -130,7 +130,7 @@ export function ActionPane({
         <div className="flex gap-1.5">
           {(["friendly", "firm", "final-notice"] as Tone[]).map((t) => (
             <button key={t} onClick={() => setTone(t)}
-              className={`text-xs px-2.5 py-1 rounded border capitalize ${tone === t ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"}`}>
+              className={`text-xs px-2.5 py-1 rounded border capitalize ${tone === t ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-slate-100"}`}>
               {t}
             </button>
           ))}
@@ -145,7 +145,7 @@ export function ActionPane({
       {draft && (
         <textarea value={draft} onChange={(e) => setDraft(e.target.value)}
           rows={14}
-          className="mt-3 w-full text-sm font-mono p-3 border rounded-md resize-y bg-muted/20" />
+          className="mt-3 w-full text-sm font-mono p-3 border rounded-md resize-y bg-slate-50" />
       )}
 
       <div className="mt-4 pt-4 border-t">
@@ -154,7 +154,7 @@ export function ActionPane({
           <input type="date" value={ptpDate} onChange={(e) => setPtpDate(e.target.value)}
             className="flex-1 text-sm border rounded-md px-2 py-1.5" />
           <button onClick={handleSuggestPtp}
-            className="text-xs px-2.5 py-1 border rounded-md hover:bg-muted">
+            className="text-xs px-2.5 py-1 border rounded-md hover:bg-slate-100">
             Suggest
           </button>
         </div>
