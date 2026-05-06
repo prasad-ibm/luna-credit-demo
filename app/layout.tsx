@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Credit Workbench",
-  description: "Agentic credit, collections & SOX controls — AgenticSAP demo",
+  title: "Luna Telecom · Credit & Collections",
+  description: "Agentic credit, collections & SOX controls — North America Telecom",
 };
 
 export default function RootLayout({
@@ -32,7 +32,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <header className="border-b bg-card">
           <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center gap-8">
-            <div className="font-semibold">Credit Workbench</div>
+            <div className="font-semibold tracking-tight">
+              Luna Telecom <span className="text-slate-400 font-normal">· Credit & Collections</span>
+            </div>
             <nav className="flex gap-1 text-sm">
               <Link
                 href="/exposure"
