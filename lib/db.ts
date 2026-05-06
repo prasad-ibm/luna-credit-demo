@@ -61,6 +61,145 @@ export async function refreshViews() {
   await query(`REFRESH MATERIALIZED VIEW credit_collections.mv_collections_worklist`);
 }
 
+// ---------- Tab 1: Exposure ----------
+
+export async function getPortfolioSummary() {
+  const [kpi] = await query<{
+    total_ar: string; total_overdue: string;
+    customers_on_hold: string; customers_active: string;
+  }>(`
+    SELECT
+      COALESCE(SUM(s.total_ar_balance), 0)     AS total_ar,
+      COALESCE(SUM(s.total_overdue_amount), 0) AS total_overdue,
+      COUNT(*) FILTER (WHERE a.credit_hold_flag = TRUE) AS customers_on_hold,
+      COUNT(DISTINCT c.customer_id) AS customers_active
+    FROM credit_collections.customer c
+    LEFT JOIN credit_collections.customer_ar_summary s ON s.customer_id = c.customer_id
+    LEFT JOIN credit_collections.account a              ON a.customer_id = c.customer_id
+    WHERE c.status = 'ACTIVE'
+  `);
+  return kpi;
+}
+
+export async function getPortfolioByRisk() {
+  return query<{ risk_class: string; customer_count: string; total_ar: string; total_overdue: string }>(`
+    SELECT
+      cp.risk_class,
+      COUNT(DISTINCT c.customer_id) AS customer_count,
+      COALESCE(SUM(s.total_ar_balance), 0)     AS total_ar,
+      COALESCE(SUM(s.total_overdue_amount), 0) AS total_overdue
+    FROM credit_collections.customer c
+    JOIN credit_collections.credit_profile cp       ON cp.customer_id = c.customer_id
+    LEFT JOIN credit_collections.customer_ar_summary s ON s.customer_id = c.customer_id
+    WHERE c.status = 'ACTIVE'
+    GROUP BY cp.risk_class
+    ORDER BY CASE cp.risk_class WHEN 'WATCH' THEN 1 WHEN 'HIGH' THEN 2
+                                WHEN 'MEDIUM' THEN 3 ELSE 4 END
+  `);
+}
+
+export async function getHierarchyRollup(limit = 20) {
+  return query<{
+    root_customer_id: number; root_legal_name: string; entity_count: string;
+    consolidated_ar_balance: string; consolidated_overdue: string;
+    consolidated_limit: string; utilization_pct: string;
+  }>(`
+    SELECT * FROM credit_collections.mv_parent_exposure_rollup
+    WHERE entity_count > 1
+    ORDER BY utilization_pct DESC NULLS LAST LIMIT $1
+  `, [limit]);
+}
+
+export async function getLimitBreachWatchlist(limit = 30) {
+  return query<{
+    customer_id: number; legal_name: string; country_code: string;
+    risk_class: string; total_ar_balance: string; approved_limit: string;
+    utilization_pct: string; total_overdue_amount: string; delinquency_flag: boolean;
+  }>(`
+    SELECT
+      c.customer_id, c.legal_name, c.country_code,
+      cp.risk_class,
+      s.total_ar_balance, s.total_overdue_amount, s.delinquency_flag,
+      cl.approved_limit,
+      CASE WHEN cl.approved_limit > 0
+           THEN ROUND(s.total_ar_balance / cl.approved_limit * 100, 1)
+           ELSE NULL END AS utilization_pct
+    FROM credit_collections.customer c
+    JOIN credit_collections.credit_profile cp ON cp.customer_id = c.customer_id
+    JOIN credit_collections.customer_ar_summary s ON s.customer_id = c.customer_id
+    LEFT JOIN LATERAL (
+      SELECT SUM(cl2.approved_limit) AS approved_limit
+      FROM credit_collections.credit_limit cl2
+      WHERE cl2.credit_profile_id = cp.credit_profile_id
+        AND cl2.effective_date <= CURRENT_DATE
+        AND (cl2.expiry_date IS NULL OR cl2.expiry_date >= CURRENT_DATE)
+    ) cl ON TRUE
+    WHERE c.status = 'ACTIVE' AND s.total_ar_balance > 0
+    ORDER BY utilization_pct DESC NULLS LAST
+    LIMIT $1
+  `, [limit]);
+}
+
+export async function getCustomer360(customer_id: number) {
+  const [customer] = await query<any>(`
+    SELECT c.*, cp.risk_class, cp.internal_rating, cp.external_score,
+           cp.probability_of_default, cp.last_review_date,
+           s.total_ar_balance, s.total_overdue_amount,
+           s.avg_days_to_pay, s.delinquency_flag, s.oldest_invoice_date,
+           parent.legal_name AS parent_name
+    FROM credit_collections.customer c
+    LEFT JOIN credit_collections.credit_profile cp    ON cp.customer_id = c.customer_id
+    LEFT JOIN credit_collections.customer_ar_summary s ON s.customer_id = c.customer_id
+    LEFT JOIN credit_collections.customer parent       ON parent.customer_id = c.parent_customer_id
+    WHERE c.customer_id = $1
+  `, [customer_id]);
+
+  const [limit] = await query<any>(`
+    SELECT SUM(cl.approved_limit) AS approved_limit
+    FROM credit_collections.credit_limit cl
+    JOIN credit_collections.credit_profile cp ON cp.credit_profile_id = cl.credit_profile_id
+    WHERE cp.customer_id = $1
+      AND cl.effective_date <= CURRENT_DATE
+      AND (cl.expiry_date IS NULL OR cl.expiry_date >= CURRENT_DATE)
+  `, [customer_id]);
+
+  const contacts = await query<any>(`
+    SELECT * FROM credit_collections.contact
+    WHERE customer_id = $1 AND is_active ORDER BY
+      CASE role WHEN 'AP' THEN 1 WHEN 'Treasury' THEN 2 WHEN 'CFO' THEN 3 ELSE 4 END
+  `, [customer_id]);
+
+  const recent_invoices = await query<any>(`
+    SELECT i.invoice_id, i.invoice_date, i.due_date, i.invoice_amount,
+           i.outstanding_amount, i.aging_bucket, i.status, a.currency_code
+    FROM credit_collections.invoice i
+    JOIN credit_collections.account a ON a.account_id = i.account_id
+    WHERE a.customer_id = $1 ORDER BY i.invoice_date DESC LIMIT 12
+  `, [customer_id]);
+
+  const risk_events = await query<any>(`
+    SELECT re.* FROM credit_collections.risk_event re
+    JOIN credit_collections.credit_profile cp ON cp.credit_profile_id = re.credit_profile_id
+    WHERE cp.customer_id = $1 ORDER BY re.event_date DESC LIMIT 8
+  `, [customer_id]);
+
+  const disputes = await query<any>(`
+    SELECT d.*, i.invoice_date FROM credit_collections.dispute d
+    JOIN credit_collections.invoice i  ON i.invoice_id = d.invoice_id
+    JOIN credit_collections.account a  ON a.account_id = i.account_id
+    WHERE a.customer_id = $1 ORDER BY i.invoice_date DESC LIMIT 6
+  `, [customer_id]);
+
+  const children = await query<any>(`
+    SELECT c.customer_id, c.legal_name, s.total_ar_balance, s.total_overdue_amount
+    FROM credit_collections.customer c
+    LEFT JOIN credit_collections.customer_ar_summary s ON s.customer_id = c.customer_id
+    WHERE c.parent_customer_id = $1
+  `, [customer_id]);
+
+  return { customer, limit, contacts, recent_invoices, risk_events, disputes, children };
+}
+
 // ---------- Tab 3: SOX ----------
 
 export async function getViolationSummary() {

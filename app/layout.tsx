@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 import Link from "next/link";
+import { NavLinks } from "./NavLinks";
 
 export const metadata: Metadata = {
   title: "Luna Telecom · Credit & Collections",
@@ -35,26 +36,7 @@ export default function RootLayout({
             <div className="font-semibold tracking-tight">
               Luna Telecom <span className="text-slate-400 font-normal">· Credit & Collections</span>
             </div>
-            <nav className="flex gap-1 text-sm">
-              <Link
-                href="/exposure"
-                className="px-3 py-1.5 rounded-md hover:bg-slate-100"
-              >
-                Exposure
-              </Link>
-              <Link
-                href="/collections"
-                className="px-3 py-1.5 rounded-md hover:bg-slate-100"
-              >
-                Collections
-              </Link>
-              <Link
-                href="/sox"
-                className="px-3 py-1.5 rounded-md hover:bg-slate-100"
-              >
-                SOX
-              </Link>
-            </nav>
+            <NavLinks />
           </div>
         </header>
         <main className="flex-1">{children}</main>

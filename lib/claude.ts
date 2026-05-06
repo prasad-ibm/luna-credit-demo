@@ -90,6 +90,36 @@ LAST ACTIVITY: ${req.last_activity ?? "none on record"}`;
   };
 }
 
+export async function customerNarrative(args: {
+  customer_name: string;
+  risk_class: string;
+  total_ar: number;
+  total_overdue: number;
+  avg_days_to_pay: number;
+  delinquency_flag: boolean;
+  probability_of_default: number | null;
+  recent_events: string;
+}) {
+  const userMessage = `Write a 3-sentence credit analyst summary for ${args.customer_name}.
+Risk class: ${args.risk_class}
+Total AR: $${args.total_ar.toLocaleString()} (overdue: $${args.total_overdue.toLocaleString()})
+Avg days to pay: ${args.avg_days_to_pay}
+Delinquent: ${args.delinquency_flag}
+PD: ${args.probability_of_default != null ? (args.probability_of_default * 100).toFixed(1) + "%" : "N/A"}
+Recent risk events: ${args.recent_events || "none"}
+
+Focus on credit risk posture, payment behavior trend, and recommended action. Be precise and direct.`;
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 200,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage }],
+  });
+  const textBlock = response.content.find((b) => b.type === "text");
+  return textBlock && textBlock.type === "text" ? textBlock.text : "";
+}
+
 export async function suggestPtpDate(args: {
   customer_name: string;
   avg_days_to_pay: number;
