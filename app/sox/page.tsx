@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getViolationSummary, getViolations } from "@/lib/db";
 import { fmtDate } from "@/lib/format";
 import { AuditSearch } from "./AuditSearch";

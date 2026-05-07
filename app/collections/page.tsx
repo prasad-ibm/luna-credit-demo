@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { query } from "@/lib/db";
 import { fmtCurrency, fmtDate, fmtDays, riskColor, agingColor } from "@/lib/format";

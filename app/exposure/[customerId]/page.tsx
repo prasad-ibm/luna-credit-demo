@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getCustomer360, getCustomerCollectionActivity } from "@/lib/db";
 import { fmtCurrency, fmtDate, riskColor, agingColor } from "@/lib/format";
 import { NarrativeButton } from "./NarrativeButton";
