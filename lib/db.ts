@@ -63,6 +63,39 @@ export async function refreshViews() {
 
 // ---------- Tab 1: Exposure ----------
 
+export async function getAgingBuckets() {
+  return query<{ aging_bucket: string; invoice_count: string; outstanding: string }>(`
+    SELECT
+      i.aging_bucket,
+      COUNT(*)                              AS invoice_count,
+      COALESCE(SUM(i.outstanding_amount),0) AS outstanding
+    FROM credit_collections.invoice i
+    JOIN credit_collections.account a ON a.account_id = i.account_id
+    JOIN credit_collections.customer c ON c.customer_id = a.customer_id
+    WHERE i.status NOT IN ('PAID','CANCELLED') AND c.status = 'ACTIVE'
+    GROUP BY i.aging_bucket
+    ORDER BY CASE i.aging_bucket
+      WHEN 'CURRENT' THEN 1 WHEN '30' THEN 2 WHEN '60' THEN 3 WHEN '90+' THEN 4 ELSE 5 END
+  `);
+}
+
+export async function getCustomerCollectionActivity(customer_id: number) {
+  return query<{
+    activity_id: number; invoice_id: number; activity_type: string;
+    activity_date: string; promise_to_pay_date: string | null;
+    status: string; collector_id: string;
+  }>(`
+    SELECT ca.activity_id, ca.invoice_id, ca.activity_type,
+           ca.activity_date, ca.promise_to_pay_date, ca.status, ca.collector_id
+    FROM credit_collections.collection_activity ca
+    JOIN credit_collections.invoice i  ON i.invoice_id = ca.invoice_id
+    JOIN credit_collections.account a  ON a.account_id = i.account_id
+    WHERE a.customer_id = $1
+    ORDER BY ca.activity_date DESC
+    LIMIT 20
+  `, [customer_id]);
+}
+
 export async function getPortfolioSummary() {
   const [kpi] = await query<{
     total_ar: string; total_overdue: string;

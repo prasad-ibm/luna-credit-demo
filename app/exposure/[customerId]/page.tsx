@@ -1,4 +1,4 @@
-import { getCustomer360 } from "@/lib/db";
+import { getCustomer360, getCustomerCollectionActivity } from "@/lib/db";
 import { fmtCurrency, fmtDate, riskColor, agingColor } from "@/lib/format";
 import { NarrativeButton } from "./NarrativeButton";
 import { notFound } from "next/navigation";
@@ -12,8 +12,11 @@ export default async function Customer360Page({
   const id = parseInt(customerId);
   if (isNaN(id)) notFound();
 
-  const { customer, limit, contacts, recent_invoices, risk_events, disputes, children } =
-    await getCustomer360(id);
+  const [{ customer, limit, contacts, recent_invoices, risk_events, disputes, children }, activities] =
+    await Promise.all([
+      getCustomer360(id),
+      getCustomerCollectionActivity(id),
+    ]);
 
   if (!customer) notFound();
 
@@ -64,16 +67,24 @@ export default async function Customer360Page({
             </div>
           )}
         </div>
-        <NarrativeButton
-          customer_name={customer.legal_name}
-          risk_class={customer.risk_class ?? "MEDIUM"}
-          total_ar={totalAr}
-          total_overdue={totalOverdue}
-          avg_days_to_pay={Math.round(parseFloat(customer.avg_days_to_pay ?? "30"))}
-          delinquency_flag={customer.delinquency_flag ?? false}
-          probability_of_default={customer.probability_of_default ? parseFloat(customer.probability_of_default) : null}
-          recent_events={recentEventSummary}
-        />
+        <div className="flex items-center gap-2">
+          <a
+            href={`/collections?q=${encodeURIComponent(customer.legal_name)}`}
+            className="text-xs px-3 py-1.5 rounded-md border bg-card hover:bg-slate-50"
+          >
+            Open in Collections →
+          </a>
+          <NarrativeButton
+            customer_name={customer.legal_name}
+            risk_class={customer.risk_class ?? "MEDIUM"}
+            total_ar={totalAr}
+            total_overdue={totalOverdue}
+            avg_days_to_pay={Math.round(parseFloat(customer.avg_days_to_pay ?? "30"))}
+            delinquency_flag={customer.delinquency_flag ?? false}
+            probability_of_default={customer.probability_of_default ? parseFloat(customer.probability_of_default) : null}
+            recent_events={recentEventSummary}
+          />
+        </div>
       </div>
 
       {/* KPI row */}
@@ -210,6 +221,45 @@ export default async function Customer360Page({
                       </td>
                       <td className="px-4 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDate(e.event_date)}</td>
                       <td className="px-4 py-2 text-xs text-muted-foreground">{e.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Collection activity */}
+          {activities.length > 0 && (
+            <div className="rounded-lg border bg-card overflow-hidden">
+              <div className="px-4 py-3 border-b bg-slate-50 flex items-center justify-between">
+                <div className="text-sm font-medium">Collection activity</div>
+                <a
+                  href={`/collections?q=${encodeURIComponent(customer.legal_name)}`}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Open in Collections →
+                </a>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100 border-b text-left">
+                  <tr>
+                    <th className="px-4 py-2 font-medium text-xs">Type</th>
+                    <th className="px-4 py-2 font-medium text-xs">Invoice</th>
+                    <th className="px-4 py-2 font-medium text-xs">Date</th>
+                    <th className="px-4 py-2 font-medium text-xs">PTP date</th>
+                    <th className="px-4 py-2 font-medium text-xs">Status</th>
+                    <th className="px-4 py-2 font-medium text-xs">Collector</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activities.map((a) => (
+                    <tr key={a.activity_id} className="border-b hover:bg-slate-50">
+                      <td className="px-4 py-2 text-xs font-medium">{a.activity_type}</td>
+                      <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{a.invoice_id}</td>
+                      <td className="px-4 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDate(a.activity_date)}</td>
+                      <td className="px-4 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDate(a.promise_to_pay_date)}</td>
+                      <td className="px-4 py-2 text-xs text-muted-foreground">{a.status}</td>
+                      <td className="px-4 py-2 text-xs text-muted-foreground">{a.collector_id}</td>
                     </tr>
                   ))}
                 </tbody>

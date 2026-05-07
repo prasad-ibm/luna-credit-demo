@@ -3,14 +3,16 @@ import {
   getPortfolioByRisk,
   getHierarchyRollup,
   getLimitBreachWatchlist,
+  getAgingBuckets,
 } from "@/lib/db";
 import { fmtCurrency, riskColor } from "@/lib/format";
 import { PortfolioChart } from "./PortfolioChart";
 
 export default async function ExposurePage() {
-  const [summary, byRisk, hierarchy, watchlist] = await Promise.all([
+  const [summary, byRisk, aging, hierarchy, watchlist] = await Promise.all([
     getPortfolioSummary(),
     getPortfolioByRisk(),
+    getAgingBuckets(),
     getHierarchyRollup(20),
     getLimitBreachWatchlist(30),
   ]);
@@ -50,6 +52,41 @@ export default async function ExposurePage() {
           <div className="text-2xl font-semibold mt-1">
             {parseInt(summary.customers_active ?? "0").toLocaleString()}
           </div>
+        </div>
+      </div>
+
+      {/* Aging bucket strip */}
+      <div className="mb-8">
+        <div className="text-sm font-medium mb-3">AR aging breakdown</div>
+        <div className="grid grid-cols-4 gap-3">
+          {aging.map((b) => {
+            const outstanding = parseFloat(b.outstanding);
+            const totalOutstanding = aging.reduce((s, r) => s + parseFloat(r.outstanding), 0);
+            const pct = totalOutstanding > 0 ? (outstanding / totalOutstanding) * 100 : 0;
+            const bucketStyle: Record<string, string> = {
+              CURRENT: "border-green-200 bg-green-50",
+              "30":    "border-yellow-200 bg-yellow-50",
+              "60":    "border-orange-200 bg-orange-50",
+              "90+":   "border-red-200 bg-red-50",
+            };
+            const labelStyle: Record<string, string> = {
+              CURRENT: "text-green-800",
+              "30":    "text-yellow-800",
+              "60":    "text-orange-800",
+              "90+":   "text-red-700",
+            };
+            return (
+              <div key={b.aging_bucket} className={`rounded-lg border p-4 ${bucketStyle[b.aging_bucket] ?? "bg-card border"}`}>
+                <div className={`text-xs font-medium mb-1 ${labelStyle[b.aging_bucket] ?? ""}`}>
+                  {b.aging_bucket === "CURRENT" ? "Current" : `${b.aging_bucket} days`}
+                </div>
+                <div className="text-xl font-semibold">{fmtCurrency(outstanding)}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {parseInt(b.invoice_count).toLocaleString()} invoices · {pct.toFixed(1)}%
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
