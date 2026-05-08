@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
-/* Design tokens — maps shadcn-style class names to concrete values */
+/* Design tokens — Verizon dark theme */
 :root {
-  --background:         #ffffff;
-  --foreground:         #1b1b1b;
-  --card:               #ffffff;
-  --card-foreground:    #1b1b1b;
-  --muted:              #f6f6f6;
-  --muted-foreground:   #6f7171;
+  --background:         #0f0f0f;
+  --foreground:         #ededed;
+  --card:               #1a1a1a;
+  --card-foreground:    #ededed;
+  --muted:              #262626;
+  --muted-foreground:   #a3a3a3;
   --primary:            #ee0000;
   --primary-foreground: #ffffff;
-  --border:             #d8dada;
-  --input:              #d8dada;
+  --border:             #2e2e2e;
+  --input:              #2e2e2e;
   --ring:               #ee0000;
 }
 
@@ -29,7 +29,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Default border colour so bare `border` utility shows a visible line */
+/* Default border colour */
 *,
 *::before,
 *::after {
@@ -40,4 +40,23 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+/* Dark overrides for hardcoded Tailwind slate classes used in tables/forms */
+.bg-slate-100 { background-color: #262626 !important; }
+.bg-slate-50  { background-color: #1f1f1f !important; }
+.hover\:bg-slate-50:hover { background-color: #222222 !important; }
+.hover\:bg-slate-100:hover { background-color: #2a2a2a !important; }
+
+/* Form controls */
+input, select, textarea {
+  background-color: #1a1a1a;
+  color: #ededed;
+  border-color: #2e2e2e;
+}
+input::placeholder { color: #6b6b6b; }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #ee0000;
+  box-shadow: 0 0 0 2px rgba(238,0,0,0.2);
 }
