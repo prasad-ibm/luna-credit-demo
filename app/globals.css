@@ -3,16 +3,16 @@
 /* Design tokens — maps shadcn-style class names to concrete values */
 :root {
   --background:         #ffffff;
-  --foreground:         #0f172a;
+  --foreground:         #1b1b1b;
   --card:               #ffffff;
-  --card-foreground:    #0f172a;
-  --muted:              #f8fafc;
-  --muted-foreground:   #64748b;
-  --primary:            #2563eb;
+  --card-foreground:    #1b1b1b;
+  --muted:              #f6f6f6;
+  --muted-foreground:   #6f7171;
+  --primary:            #ee0000;
   --primary-foreground: #ffffff;
-  --border:             #e2e8f0;
-  --input:              #e2e8f0;
-  --ring:               #2563eb;
+  --border:             #d8dada;
+  --input:              #d8dada;
+  --ring:               #ee0000;
 }
 
 @theme inline {
