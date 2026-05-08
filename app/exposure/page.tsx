@@ -82,8 +82,8 @@ export default async function ExposurePage() {
                 <div className={`text-xs font-medium mb-1 ${labelStyle[b.aging_bucket] ?? ""}`}>
                   {b.aging_bucket === "CURRENT" ? "Current" : `${b.aging_bucket} days`}
                 </div>
-                <div className="text-xl font-semibold">{fmtCurrency(outstanding)}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">
+                <div className="text-xl font-semibold text-black">{fmtCurrency(outstanding)}</div>
+                <div className="text-xs mt-0.5 text-black/60">
                   {parseInt(b.invoice_count).toLocaleString()} invoices · {pct.toFixed(1)}%
                 </div>
               </div>
