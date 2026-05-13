@@ -28,7 +28,7 @@ export default async function ExposurePage() {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Portfolio Exposure</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Verizon enterprise AR — credit utilization, hierarchy rollup, and limit breach watchlist.
+          Enterprise AR — credit utilization, hierarchy rollup, and limit breach watchlist.
         </p>
       </div>
 

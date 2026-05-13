@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Design tokens — Verizon dark theme */
+/* Design tokens — dark theme */
 :root {
   --background:         #0f0f0f;
   --foreground:         #ededed;

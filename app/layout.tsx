@@ -16,8 +16,8 @@ import Link from "next/link";
 import { NavLinks } from "./NavLinks";
 
 export const metadata: Metadata = {
-  title: "Verizon · Credit & Collections",
-  description: "Agentic credit, collections & SOX controls — Verizon Enterprise",
+  title: "Credit & Collections Workbench",
+  description: "Agentic credit, collections & SOX controls",
 };
 
 export default function RootLayout({
@@ -34,8 +34,8 @@ export default function RootLayout({
         <header className="bg-black border-b border-zinc-800">
           <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center gap-8">
             <div className="flex items-center gap-2">
-              <span className="text-[#ee0000] font-black text-xl tracking-tight">Verizon</span>
-              <span className="text-zinc-500 font-normal text-sm">· Credit & Collections</span>
+              <span className="text-white font-bold text-base tracking-tight">Credit & Collections</span>
+              <span className="text-zinc-500 font-normal text-sm">· Workbench</span>
             </div>
             <NavLinks />
           </div>
